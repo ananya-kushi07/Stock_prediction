@@ -21,6 +21,10 @@ try:
 except Exception as e:
     raise FileNotFoundError(f"Error loading the model: {e}")
 
+@app.route('/')
+def home():
+    return "Welcome to the Backend!"
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
