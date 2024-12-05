@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        .result, .error {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .result {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        img {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Stock Prediction</h1>
+
+    <!-- Form to input ticker symbol -->
+    <form id="tickerForm">
+        <label for="tickerInput">Enter a stock ticker symbol (e.g., AAPL, TSLA):</label><br><br>
+        <input type="text" id="tickerInput" name="ticker" placeholder="Enter ticker symbol" required><br><br>
+        <button type="submit">Predict</button>
+    </form>
+
+    <!-- Display results -->
+    <div id="result" class="result" style="display: none;">
+        <p>Predicted Price: <span id="predictedPrice"></span></p>
+        <p>Real Price: <span id="realPrice"></span></p>
+        <p>Mean Squared Error: <span id="mse"></span></p>
+        <p>Stock Price Graph:</p>
+        <img id="priceGraph" src="" alt="Stock Price Graph">
+    </div>
+
+    <!-- Display error -->
+    <div id="error" class="error" style="display: none;"></div>
+
+    <script>
+        document.getElementById('tickerForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            const tickerInput = document.getElementById('tickerInput').value;
+
+            // Send request to Flask backend
+            fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ticker: tickerInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                    document.getElementById('error').innerText = data.error;
+                } else {
+                    document.getElementById('error').style.display = 'none';
+                    document.getElementById('result').style.display = 'block';
+
+                    // Update result fields
+                    document.getElementById('predictedPrice').innerText = data.predicted_price;
+                    document.getElementById('realPrice').innerText = data.real_price;
+                    document.getElementById('mse').innerText = data.mse;
+                    document.getElementById('priceGraph').src = data.graph_url;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerText = 'An error occurred: ' + error.message;
+            });
+        });
+    </script>
+
+</body>
+</html>
